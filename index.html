@@ -1,0 +1,898 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Wi-Fi у кімнаті 48 м²</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Unbounded:wght@500&display=swap">
+<style>
+/* Layout: RF-survey instrument. The room is the screen; controls sit in a side rack. Calculations and report are their own tabs. */
+:root{
+  --bg:#EDF1F4; --panel:#FFFFFF; --fg:#14222C; --muted:#52626D; --line:#CBD4DA; --accent:#0B6F8C; --on-accent:#FFFFFF;
+  --s24:#0E7FA8; --s5:#C8560F; --warn-bg:#FBF0DC; --warn-fg:#6B4608; --mark:#FFF1B8;
+  --scene:#0A1117; --scene-fg:#DCE7ED; --scene-muted:#92A5B1; --scene-chip:rgba(10,17,23,.78);
+  --display:"Unbounded","IBM Plex Sans",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0D141B; --panel:#141E27; --fg:#E5EDF2; --muted:#94A6B2; --line:#2B3A46; --accent:#55C2DA; --on-accent:#08202A;
+  --s24:#2F99BE; --s5:#D5702A; --warn-bg:#35280F; --warn-fg:#F1D08F; --mark:#4A3F10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D141B; --panel:#141E27; --fg:#E5EDF2; --muted:#94A6B2; --line:#2B3A46; --accent:#55C2DA; --on-accent:#08202A;
+  --s24:#2F99BE; --s5:#D5702A; --warn-bg:#35280F; --warn-fg:#F1D08F; --mark:#4A3F10; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:14px/1.5 var(--body)}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{height:100%;display:flex;flex-direction:column}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);background:var(--panel)}
+.top h1{font:500 15px/1.2 var(--display);margin:0;letter-spacing:-.01em}
+.tabs{display:flex;gap:4px;margin-left:auto}
+.tabs button{border:0;background:none;padding:6px 12px;border-radius:6px;cursor:pointer;color:var(--muted);font-weight:500}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--on-accent)}
+.view{flex:1;min-height:0}
+#v3d{display:grid;grid-template-columns:minmax(0,1fr) 316px}
+#v3d[hidden]{display:none!important}
+.stage{position:relative;background:var(--scene);min-height:0;overflow:hidden}
+.stage canvas{display:block;width:100%;height:100%;cursor:grab}
+.stage canvas.drag{cursor:grabbing}
+.tag{position:absolute;pointer-events:none;font:11px/1.2 var(--mono);color:var(--scene-fg);background:var(--scene-chip);padding:2px 5px;border-radius:3px;white-space:nowrap;transform:translate(-50%,-50%)}
+.tag.dim{color:var(--scene-muted);background:none}
+.hud{position:absolute;color:var(--scene-fg);background:var(--scene-chip);border-radius:6px;padding:8px 10px;font-size:12px}
+#readout{top:12px;left:12px;min-width:190px;max-width:calc(100% - 24px)}
+#readout b{font:500 22px/1.15 var(--mono);display:block}
+#readout .sub{color:var(--scene-muted);font:12px/1.4 var(--body)}
+#legend{left:12px;bottom:12px;width:min(370px,calc(100% - 24px))}
+.ramp{height:10px;border-radius:2px;background:linear-gradient(90deg,#440154,#3b528b,#21918c,#5ec962,#fde725)}
+.ticks{position:relative;height:30px;font:10.5px/1.25 var(--mono);color:var(--scene-muted)}
+.ticks span{position:absolute;top:4px;transform:translateX(-50%);text-align:center;white-space:nowrap}
+.ticks span:first-child{transform:none}.ticks span:last-child{transform:translateX(-100%)}
+#honest{right:12px;top:12px;max-width:min(300px,calc(100% - 24px));color:var(--scene-muted);font-size:11.5px;line-height:1.4}
+#views{right:12px;bottom:12px;display:flex;gap:4px;padding:4px}
+#views button{border:0;background:none;color:var(--scene-fg);padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px}
+#views button:hover{background:rgba(255,255,255,.12)}
+#nogl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:var(--scene-fg)}
+.rack{background:var(--panel);border-left:1px solid var(--line);overflow:auto;padding:14px 16px 24px;display:flex;flex-direction:column;gap:18px}
+.grp{display:flex;flex-direction:column;gap:9px}
+.grp h2{margin:0;font:600 11px/1.3 var(--body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{flex:1;border:0;background:none;padding:6px 4px;cursor:pointer;font-size:13px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:baseline;font-size:13px}
+.row output,.num{font:12.5px var(--mono);font-variant-numeric:tabular-nums}
+.row input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--accent);margin:0}
+.chk{display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer}
+.chk input{accent-color:var(--accent);margin:0}
+.chk small{color:var(--muted);margin-left:auto;font:11px var(--mono)}
+select,input[type=text],input[type=number],textarea{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:5px 7px}
+select{width:100%}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 11px;cursor:pointer;font-weight:500;font-size:13px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.items{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.items:empty{display:none}
+.items button{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 8px;text-align:left;border:0;background:none;padding:6px 9px;cursor:pointer;font-size:13px}
+.items button+button{border-top:1px solid var(--line)}
+.items button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.items small{grid-column:1/-1;font:11px var(--mono);opacity:.8}
+.addrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
+.stat{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 8px;font-size:13px;align-items:baseline}
+.stat b{font:500 15px var(--mono)}
+.stat small{grid-column:1/-1;font:11px var(--mono);color:var(--muted)}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.page{overflow:auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:26px}
+.note{background:var(--warn-bg);color:var(--warn-fg);border-radius:6px;padding:10px 14px;font-size:13.5px}
+h2.sec{font:500 16px/1.3 var(--display);margin:0;text-wrap:balance}
+.cols{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:26px}
+.cols>*,.charts>*{min-width:0;display:flex;flex-direction:column;gap:10px}
+textarea#csv{width:100%;height:280px;font:12px/1.45 var(--mono);white-space:pre;overflow:auto;resize:vertical}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.tblw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:5px 10px 5px 0;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:600;color:var(--muted);font-size:12px}
+.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto}
+.chart h3{margin:0 0 4px;font-size:13.5px;font-weight:600}
+.key{display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap;align-items:center}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:4px 8px;font:12px/1.35 var(--mono);white-space:nowrap;z-index:2}
+.calc{font:13px/1.65 var(--mono);overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 14px;white-space:pre}
+.inl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
+.inl input{width:90px}
+.doc{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:12px;font-size:15px;line-height:1.65}
+.doc h2{font:500 16px/1.3 var(--display);margin:14px 0 0}
+.doc p,.doc ol,.doc ul{margin:0}
+.doc li+li{margin-top:5px}
+.formula{font:14px/1.6 var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px;overflow-x:auto;white-space:nowrap}
+mark{background:var(--mark);color:inherit;padding:0 3px;border-radius:2px}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 220px;font-size:13px}
+.field input,.field select{width:100%}
+.fields{display:flex;flex-wrap:wrap;gap:12px}
+@media (max-width:860px){
+  html,body{height:auto}.app{height:auto;min-height:100%}
+  #v3d{grid-template-columns:minmax(0,1fr)}
+  .stage{height:68vh;min-height:420px}
+  .rack{border-left:0;border-top:1px solid var(--line);overflow:visible;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .cols,.charts{grid-template-columns:minmax(0,1fr)}
+  #honest{top:auto;bottom:112px;left:12px;right:12px;max-width:none}
+  #views{bottom:auto;top:12px}
+  .tag{display:none}
+}
+</style>
+
+<div class="app">
+  <header class="top">
+    <h1>Wi-Fi у кімнаті <span id="hArea">48 м²</span></h1>
+    <nav class="tabs" role="tablist" aria-label="Розділи">
+      <button role="tab" id="t-v3d" aria-selected="true" data-v="v3d">3D-простір</button>
+      <button role="tab" id="t-vcalc" aria-selected="false" data-v="vcalc">Розрахунки</button>
+      <button role="tab" id="t-vdoc" aria-selected="false" data-v="vdoc">Звіт</button>
+    </nav>
+  </header>
+
+  <section class="view" id="v3d" role="tabpanel">
+    <div class="stage" id="stage">
+      <div class="hud" id="readout" aria-live="polite"><b id="rVal">—</b><div class="sub" id="rSub">Наведіть курсор на зріз або підлогу</div></div>
+      <div class="hud" id="honest"></div>
+      <div class="hud" id="legend">
+        <div class="ramp"></div>
+        <div class="ticks">
+          <span style="left:0">−90 дБм<br>нема зв'язку</span>
+          <span style="left:38%">−67<br>відеодзвінки</span>
+          <span style="left:67%">−50<br>відмінно</span>
+          <span style="left:100%">−30</span>
+        </div>
+      </div>
+      <div class="hud" id="views">
+        <button id="cam1" type="button">3D</button><button id="cam2" type="button">Згори</button><button id="cam3" type="button">Збоку</button><button id="play" type="button">Пауза</button>
+      </div>
+    </div>
+    <aside class="rack" aria-label="Налаштування">
+      <div class="grp"><h2>Діапазон Wi-Fi</h2>
+        <div class="seg" id="segBand"><button type="button" data-b="24" aria-pressed="true">2,4 ГГц</button><button type="button" data-b="5" aria-pressed="false">5 ГГц</button></div>
+      </div>
+      <div class="grp" id="covGrp"><h2>Покриття кімнати на висоті зрізу</h2>
+        <div class="stat"><span>Середній рівень</span><b id="cAvg"></b><small id="cAvgD"></small></div>
+        <div class="stat"><span>Від −67 дБм, відеодзвінки</span><b id="cOk"></b><small id="cOkD"></small></div>
+        <div class="stat"><span>Слабкі точки, нижче −80 дБм</span><b id="cWeak"></b><small id="cWeakD"></small></div>
+      </div>
+      <div class="grp"><h2>Предмети інтер'єру</h2>
+        <div class="addrow"><select id="sAdd" aria-label="Який предмет додати"></select><button class="btn primary" id="bAdd" type="button">Додати</button></div>
+        <p class="hint">Тягніть предмет мишкою прямо в кімнаті. Сигнал і покриття перераховуються одразу.</p>
+        <div class="items" id="itemList"></div>
+        <div class="grp" id="itemEdit" hidden>
+          <div class="row"><label for="rIX">Положення X</label><output id="oIX"></output><input type="range" id="rIX" step="0.1" min="0"></div>
+          <div class="row"><label for="rIY">Положення Y</label><output id="oIY"></output><input type="range" id="rIY" step="0.1" min="0"></div>
+          <div class="btns"><button class="btn" id="bRot" type="button">Повернути на 90°</button><button class="btn" id="bDel" type="button">Прибрати</button></div>
+        </div>
+        <div class="btns"><button class="btn" id="bClear" type="button">Прибрати все</button><button class="btn" id="bReset" type="button">Повернути приклад</button></div>
+        <p class="hint">Втрати взято як типові довідкові значення. Працююча мікрохвильовка створює ще й завади на 2,4 ГГц: модель їх не враховує.</p>
+      </div>
+      <div class="grp"><h2>Що показати в об'ємі</h2>
+        <div class="seg" id="segMode"><button type="button" data-m="0" aria-pressed="true">Хвилі</button><button type="button" data-m="1" aria-pressed="false">Рівні</button><button type="button" data-m="2" aria-pressed="false">Нічого</button></div>
+        <label class="chk"><input type="checkbox" id="cRefl"> Відбиття від стін, підлоги, стелі</label>
+        <div class="row"><label for="rLam">Масштаб хвилі в 3D</label><output id="oLam"></output><input type="range" id="rLam" min="3" max="10" step="1" value="6"></div>
+      </div>
+      <div class="grp"><h2>Зріз на висоті</h2>
+        <label class="chk"><input type="checkbox" id="cSlice" checked> Теплова карта</label>
+        <label class="chk"><input type="checkbox" id="cNodes" checked> Вузли сітки 0,5 м <small id="nNodes"></small></label>
+        <div class="row"><label for="rH">Висота</label><output id="oH"></output><input type="range" id="rH" min="0.05" max="2.65" step="0.05" value="1"></div>
+      </div>
+      <div class="grp"><h2>Роутер <span style="text-transform:none;letter-spacing:0;font-weight:400">(можна тягнути мишкою)</span></h2>
+        <div class="row"><label for="rX">X, уздовж довгої стіни</label><output id="oX"></output><input type="range" id="rX" min="0.1" step="0.05"></div>
+        <div class="row"><label for="rY">Y, уздовж короткої стіни</label><output id="oY"></output><input type="range" id="rY" min="0.1" step="0.05"></div>
+        <div class="row"><label for="rZ">Висота</label><output id="oZ"></output><input type="range" id="rZ" min="0.1" max="2.6" step="0.05"></div>
+      </div>
+      <div class="grp"><h2>Модель загасання</h2>
+        <div class="row"><label for="rP0">P<sub>r</sub>(d₀) на 1 м</label><output id="oP0"></output><input type="range" id="rP0" min="-55" max="-20" step="1"></div>
+        <div class="row"><label for="rN">Коефіцієнт n</label><output id="oN"></output><input type="range" id="rN" min="1.6" max="4.5" step="0.05"></div>
+        <p class="hint">Для перешкод втрати додаються окремо, тому n тут ближче до значення прямої видимості.</p>
+      </div>
+      <div class="grp"><h2>Кімната і стіни</h2>
+        <label for="sRoom" class="hint">Форма кімнати 48 м², висота 2,7 м</label>
+        <select id="sRoom"><option value="8,6">8 × 6 м</option><option value="9.6,5">9,6 × 5 м</option><option value="12,4">12 × 4 м</option></select>
+        <label class="chk"><input type="checkbox" id="oWall" checked> Перегородка</label>
+        <select id="sWall" aria-label="Матеріал перегородки"><option value="gypsum">гіпсокартон</option><option value="brick" selected>цегла</option><option value="concrete">бетон</option></select>
+        <label class="chk"><input type="checkbox" id="oDoor" checked> Двері зачинені <small data-l="wood"></small></label>
+        <p class="hint">Втрати на перешкодах взято як типові довідкові значення: замініть їх власними після вимірювань.</p>
+      </div>
+    </aside>
+  </section>
+
+  <section class="view page" id="vcalc" role="tabpanel" hidden>
+    <div class="wrap">
+      <div class="note" id="srcNote"></div>
+      <div class="cols">
+        <div>
+          <h2 class="sec">Вимірювання</h2>
+          <p class="hint">Стовпці: x; y; перешкода; RSSI 2,4 ГГц; RSSI 5 ГГц. Порожня перешкода означає пряму видимість. Відстань рахується від поточного положення роутера на вкладці «3D-простір», висота вимірювання дорівнює висоті зрізу.</p>
+          <textarea id="csv" spellcheck="false" aria-label="Таблиця вимірювань"></textarea>
+          <div class="btns">
+            <button class="btn" id="bTpl" type="button">Порожня сітка 0,5 м</button>
+            <button class="btn" id="bDemo" type="button">Модельний приклад</button>
+            <button class="btn" id="bCopy" type="button">Копіювати таблицю</button>
+          </div>
+          <p class="hint" id="parseMsg"></p>
+        </div>
+        <div>
+          <h2 class="sec">Коефіцієнт згасання і затінення</h2>
+          <div class="tblw"><table id="tStats"></table></div>
+          <div class="btns"><button class="btn primary" id="bApply" type="button">Застосувати n до 3D-моделі</button></div>
+          <h2 class="sec" style="margin-top:10px">Ймовірність розриву</h2>
+          <div class="inl"><label for="iThr">Поріг чутливості, дБм</label><input type="number" id="iThr" value="-80" step="1"></div>
+          <div class="tblw"><table id="tOut"></table></div>
+          <p class="hint">P<sub>out</sub> = Q((P̄(d) − P<sub>пор</sub>) / σ), де n і σ взято за всіма точками діапазону.</p>
+        </div>
+      </div>
+      <div>
+        <h2 class="sec" style="margin-bottom:6px">Рівень сигналу від відстані</h2>
+        <div class="key" style="margin-bottom:10px">
+          <span><svg width="10" height="10" aria-hidden="true"><circle cx="5" cy="5" r="3.5" fill="var(--muted)"/></svg> пряма видимість</span>
+          <span><svg width="10" height="10" aria-hidden="true"><circle cx="5" cy="5" r="3" fill="none" stroke="var(--muted)" stroke-width="1.5"/></svg> за перешкодою</span>
+          <span><svg width="18" height="10" aria-hidden="true"><line x1="0" y1="5" x2="18" y2="5" stroke="var(--muted)" stroke-width="2"/></svg> підібрана модель</span>
+          <span>Шкала відстані логарифмічна</span>
+        </div>
+        <div class="charts"><div class="chart" id="ch24"></div><div class="chart" id="ch5"></div></div>
+      </div>
+      <div>
+        <h2 class="sec" style="margin-bottom:8px">Покроковий розрахунок</h2>
+        <div class="calc" id="steps"></div>
+      </div>
+      <div>
+        <h2 class="sec" style="margin-bottom:8px">Вплив перешкод</h2>
+        <p class="hint" style="margin-bottom:8px">Додаткове згасання: середня різниця між лінією прямої видимості та виміряним рівнем.</p>
+        <div class="tblw"><table id="tObst"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view page" id="vdoc" role="tabpanel" hidden>
+    <div class="doc" id="docWrap">
+      <div class="fields">
+        <label class="field" for="iApp">Назва вашої програми
+          <input type="text" id="iApp" placeholder="наприклад, WiFi Analyzer"></label>
+        <label class="field" for="sVar">Формулювання методики
+          <select id="sVar"><option value="0">Академічне</option><option value="1">Технічне, зі скануванням радіоефіру</option><option value="2">Стисле, для презентації</option></select></label>
+      </div>
+      <div class="btns"><button class="btn" id="bDocCopy" type="button">Копіювати текст звіту</button></div>
+      <div class="note" id="docNote"></div>
+      <article id="doc" style="display:flex;flex-direction:column;gap:12px"></article>
+    </div>
+  </section>
+</div>
+
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script>window.THREE||document.write('<scr'+'ipt src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></scr'+'ipt>')</script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>(window.THREE&&THREE.OrbitControls)||document.write('<scr'+'ipt src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></scr'+'ipt>')</script>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const fmt=(v,d=1)=>Number(v).toFixed(d).replace('.',',').replace('-','−');
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+/* ---------- Model ---------- */
+const H=2.7, GAMMA=0.5;
+const FREQ={24:2437,5:5180};
+const LOSS={gypsum:{24:3,5:4,name:'гіпсокартон'},brick:{24:8,5:14,name:'цегла'},concrete:{24:15,5:25,name:'бетон'},wood:{24:3,5:5,name:'двері'},wardrobe:{24:5,5:8,name:'шафа'},metal:{24:20,5:28,name:'метал'},fabric:{24:1.5,5:3,name:'м\'які меблі'},tabletop:{24:1.5,5:2.5,name:'стіл'},books:{24:6,5:9,name:'книги'},tv:{24:8,5:12,name:'телевізор'},mirror:{24:10,5:14,name:'дзеркало'},water:{24:12,5:22,name:'акваріум'},plant:{24:2,5:3,name:'рослина'},body:{24:4,5:7,name:'людина'}};
+const S={band:24,W:8,L:6,tx:{x:1,y:3,z:1.2},P0:{24:-35,5:-42},n:{24:2.1,5:2.3},mode:0,refl:false,lam:6,slice:true,nodes:true,h:1,
+  on:{wall:true,door:true},wallMat:'brick',playing:!matchMedia('(prefers-reduced-motion: reduce)').matches};
+
+const CAT={
+  wardrobe:{name:'Шафа',w:1.8,d:.6,h:2.1,m:'wardrobe'},
+  sofa:{name:'Диван',w:2,d:.9,h:.8,m:'fabric'},
+  bed:{name:'Ліжко',w:2,d:1.6,h:.55,m:'fabric'},
+  table:{name:'Стіл',w:1.4,d:.7,z0:.71,h:.75,m:'tabletop'},
+  bookcase:{name:'Книжкова шафа',w:1.2,d:.35,h:2,m:'books'},
+  fridge:{name:'Холодильник',w:.7,d:.7,h:1.85,m:'metal'},
+  microwave:{name:'Мікрохвильовка',w:.5,d:.4,z0:.9,h:1.2,m:'metal'},
+  tv:{name:'Телевізор',w:1.2,d:.1,z0:.7,h:1.4,m:'tv'},
+  mirror:{name:'Дзеркало',w:.8,d:.04,z0:.5,h:2,m:'mirror'},
+  aquarium:{name:'Акваріум',w:1,d:.4,z0:.7,h:1.2,m:'water'},
+  plant:{name:'Велика рослина',w:.5,d:.5,h:1.4,m:'plant'},
+  person:{name:'Людина',w:.5,d:.3,h:1.75,m:'body'},
+  column:{name:'Цегляна колона',w:.4,d:.4,h:2.7,m:'brick'},
+  screen:{name:'Гіпсокартонна стінка',w:2,d:.1,h:2.7,m:'gypsum'}
+};
+let itemSeq=1,selId=null;
+function defaultItems(){const {W,L}=S;return [
+  {t:'wardrobe',x:.3*W+.9,y:L-.32,rot:0},{t:'fridge',x:W-.45,y:.68*L+.35,rot:0},{t:'sofa',x:.2*W+1,y:.5,rot:0},{t:'table',x:.36*W+.7,y:.45*L+.35,rot:0}
+].map(i=>Object.assign(i,{id:itemSeq++}))}
+function itemDims(it){const c=CAT[it.t];return it.rot?{w:c.d,d:c.w}:{w:c.w,d:c.d}}
+function clampItem(it){const {w,d}=itemDims(it);it.x=Math.max(w/2,Math.min(S.W-w/2,it.x));it.y=Math.max(d/2,Math.min(S.L-d/2,it.y))}
+function itemBox(it){const c=CAT[it.t],{w,d}=itemDims(it);return {k:'item',item:it,m:c.m,x0:it.x-w/2,x1:it.x+w/2,y0:it.y-d/2,y1:it.y+d/2,z0:c.z0||0,z1:c.h}}
+function loadItems(){
+  try{const a=JSON.parse(store.get('wifi48.items'));if(Array.isArray(a))return a.filter(i=>i&&CAT[i.t]&&isFinite(i.x)&&isFinite(i.y)).map(i=>({t:i.t,x:+i.x,y:+i.y,rot:i.rot?1:0,id:itemSeq++}))}catch(e){}
+  return defaultItems();
+}
+function saveItems(){store.set('wifi48.items',JSON.stringify(S.items.map(({t,x,y,rot})=>({t,x,y,rot}))))}
+S.items=loadItems();
+function boxes(){
+  const {W,L,on,wallMat}=S, px=.62*W, t=.12, dy=.55*L, b=[];
+  if(on.wall){
+    b.push({k:'wall',m:wallMat,x0:px,x1:px+t,y0:0,y1:dy,z0:0,z1:H});
+    b.push({k:'wall',m:wallMat,x0:px,x1:px+t,y0:dy+.9,y1:L,z0:0,z1:H});
+    b.push({k:'wall',m:wallMat,x0:px,x1:px+t,y0:dy,y1:dy+.9,z0:2.05,z1:H});
+    if(on.door) b.push({k:'door',m:'wood',x0:px+.04,x1:px+.08,y0:dy,y1:dy+.9,z0:0,z1:2.05,label:'двері'});
+  }
+  for(const it of S.items) b.push(itemBox(it));
+  return b;
+}
+function hit(b,a,c){ // segment a→c against AABB
+  let t0=0,t1=1,d,u,v,s;
+  d=c.x-a.x; if(Math.abs(d)<1e-9){if(a.x<b.x0||a.x>b.x1)return false}else{u=(b.x0-a.x)/d;v=(b.x1-a.x)/d;if(u>v){s=u;u=v;v=s}if(u>t0)t0=u;if(v<t1)t1=v;if(t0>t1)return false}
+  d=c.y-a.y; if(Math.abs(d)<1e-9){if(a.y<b.y0||a.y>b.y1)return false}else{u=(b.y0-a.y)/d;v=(b.y1-a.y)/d;if(u>v){s=u;u=v;v=s}if(u>t0)t0=u;if(v<t1)t1=v;if(t0>t1)return false}
+  d=c.z-a.z; if(Math.abs(d)<1e-9){if(a.z<b.z0||a.z>b.z1)return false}else{u=(b.z0-a.z)/d;v=(b.z1-a.z)/d;if(u>v){s=u;u=v;v=s}if(u>t0)t0=u;if(v<t1)t1=v;if(t0>t1)return false}
+  return true;
+}
+function crossed(p,bs){return bs.filter(b=>hit(b,S.tx,p))}
+function meanRSSI(p,band,bs){
+  const d=Math.max(.2,Math.hypot(p.x-S.tx.x,p.y-S.tx.y,p.z-S.tx.z));
+  let v=S.P0[band]-10*S.n[band]*Math.log10(d);
+  for(const b of bs) if(hit(b,S.tx,p)) v-=LOSS[b.m][band];
+  return v;
+}
+function images(){const t=S.tx,{W,L}=S;return [[-t.x,t.y,t.z],[2*W-t.x,t.y,t.z],[t.x,-t.y,t.z],[t.x,2*L-t.y,t.z],[t.x,t.y,-t.z],[t.x,t.y,2*H-t.z]]}
+function fadedRSSI(p,band,bs){
+  const k=2*Math.PI*FREQ[band]/299.79, n=S.n[band], m=meanRSSI(p,band,bs);
+  const A=Math.pow(10,(m-S.P0[band])/20), d=Math.hypot(p.x-S.tx.x,p.y-S.tx.y,p.z-S.tx.z);
+  let re=A*Math.cos(k*d), im=A*Math.sin(k*d);
+  for(const q of images()){const di=Math.hypot(p.x-q[0],p.y-q[1],p.z-q[2]),a=GAMMA*Math.pow(di,-n/2);re+=a*Math.cos(k*di);im+=a*Math.sin(k*di)}
+  return S.P0[band]+20*Math.log10(Math.max(1e-4,Math.hypot(re,im)));
+}
+const lambda=b=>299.79/FREQ[b];
+const quality=v=>v>=-50?'відмінно':v>=-60?'добре':v>=-67?'вистачить для відеодзвінків':v>=-75?'слабко, лише перегляд сторінок':v>=-85?'нестабільний зв\'язок':'зв\'язку майже немає';
+function cmap(db){
+  const stops=[[68,1,84],[59,82,139],[33,145,140],[94,201,98],[253,231,37]];
+  const t=Math.min(1,Math.max(0,(db+90)/60))*4, i=Math.min(3,Math.floor(t)), f=t-i;
+  return stops[i].map((c,j)=>(c+(stops[i+1][j]-c)*f)/255);
+}
+
+/* ---------- Grid & measurements data ---------- */
+function gridNodes(){const n=[];for(let x=0;x<=S.W+1e-6;x+=.5)for(let y=0;y<=S.L+1e-6;y+=.5)n.push({x:+x.toFixed(2),y:+y.toFixed(2)});return n}
+function rng(seed){let a=seed;return ()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function demoCSV(){
+  const bs=boxes(), r=rng(48), g=()=>Math.sqrt(-2*Math.log(r()+1e-9))*Math.cos(2*Math.PI*r()), out=['x;y;перешкода;rssi24;rssi5'];
+  for(const nd of gridNodes()){
+    const p={x:nd.x,y:nd.y,z:S.h}, c=crossed(p,bs);
+    const names=[...new Set(c.map(b=>LOSS[b.m].name))].join('+');
+    out.push([String(nd.x).replace('.',','),String(nd.y).replace('.',','),names,Math.round(meanRSSI(p,24,bs)+2.5*g()),Math.round(meanRSSI(p,5,bs)+3*g())].join(';'));
+  }
+  return out.join('\n');
+}
+function templateCSV(){return ['x;y;перешкода;rssi24;rssi5'].concat(gridNodes().map(n=>[String(n.x).replace('.',','),String(n.y).replace('.',','),'','',''].join(';'))).join('\n')}
+let source='model'; // 'model' | 'user'
+function parseCSV(txt){
+  const rows=[];let bad=0;
+  txt.split(/\r?\n/).forEach(line=>{
+    if(!line.trim())return;
+    const c=line.split(/[;\t]/).map(s=>s.trim());
+    const x=parseFloat((c[0]||'').replace(',','.')),y=parseFloat((c[1]||'').replace(',','.'));
+    if(isNaN(x)||isNaN(y)){ if(!/^x\b/i.test(c[0]||'')) bad++; return }
+    const num=s=>{const v=parseFloat((s||'').replace(',','.').replace('−','-'));return isNaN(v)?null:v};
+    const r24=num(c[3]),r5=num(c[4]);
+    if(r24===null&&r5===null)return;
+    const d=Math.hypot(x-S.tx.x,y-S.tx.y,S.h-S.tx.z);
+    rows.push({x,y,obst:c[2]||'',r24,r5,d});
+  });
+  return {rows,bad};
+}
+function fit(pts,P0){
+  let sxy=0,sx2=0;
+  for(const p of pts){const x=10*Math.log10(p.d),y=P0-p.v;sxy+=x*y;sx2+=x*x}
+  const n=sx2?sxy/sx2:NaN;let se=0;
+  for(const p of pts){const e=p.v-(P0-n*10*Math.log10(p.d));se+=e*e}
+  const k=pts.length,s2=k>1?se/(k-1):NaN;
+  return {k,sxy,sx2,n,se,s2,s:Math.sqrt(s2)};
+}
+function erfc(x){const z=Math.abs(x),t=1/(1+.5*z),r=t*Math.exp(-z*z-1.26551223+t*(1.00002368+t*(.37409196+t*(.09678418+t*(-.18628806+t*(.27886807+t*(-1.13520398+t*(1.48851587+t*(-.82215223+t*.17087277)))))))));return x>=0?r:2-r}
+const Q=z=>.5*erfc(z/Math.SQRT2);
+
+let dataRows=[];
+function bandPts(band,filter){const key=band===24?'r24':'r5';return dataRows.filter(r=>r[key]!==null&&r.d>=.25&&(!filter||filter(r))).map(r=>({d:r.d,v:r[key],obst:r.obst,x:r.x,y:r.y}))}
+function analysis(){
+  const out={};
+  for(const b of [24,5]){
+    const all=bandPts(b),los=all.filter(p=>!p.obst),nlos=all.filter(p=>p.obst);
+    out[b]={all:fit(all,S.P0[b]),los:fit(los,S.P0[b]),nlos:fit(nlos,S.P0[b]),pts:all};
+  }
+  return out;
+}
+
+/* ---------- 3D ---------- */
+const stage=$('stage');let R=null,scene,camera,controls,volMat,sliceMat,volMesh,sliceMesh,tex3D,dim=[0,0,0],roomGroup,routerGroup,nodesMesh,probeLine,tags=[],floor;
+const VS=`out vec3 vW; void main(){ vec4 w=modelMatrix*vec4(position,1.0); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`;
+const COMMON=`precision highp float; precision highp sampler3D;
+uniform sampler3D uVol; uniform vec3 uSize,uDim,uTx,uImg[6]; uniform float uTime,uK,uW,uRefl,uExp,uP0,uKreal;
+float rssi(vec3 p){vec3 t=(clamp(p/uSize,0.,1.)*(uDim-1.)+.5)/uDim;return textureLod(uVol,t,0.).r*90.-110.;}
+vec3 cmap(float db){float t=clamp((db+90.)/60.,0.,1.)*4.;
+ vec3 c0=vec3(.267,.004,.329),c1=vec3(.231,.322,.545),c2=vec3(.129,.569,.549),c3=vec3(.369,.788,.384),c4=vec3(.992,.906,.145);
+ if(t<1.)return mix(c0,c1,t); if(t<2.)return mix(c1,c2,t-1.); if(t<3.)return mix(c2,c3,t-2.); return mix(c3,c4,t-3.);}
+vec3 toRoom(vec3 w){return vec3(w.x+uSize.x*.5,w.y,w.z+uSize.z*.5);}`;
+const FS_VOL=COMMON+`
+uniform vec3 uCam; uniform float uMode; uniform int uSteps; in vec3 vW; out vec4 o;
+void main(){
+ vec3 ro=toRoom(uCam), rd=normalize(vW-uCam);
+ vec3 inv=1./rd, a=(vec3(0.)-ro)*inv, b=(uSize-ro)*inv, mn=min(a,b), mx=max(a,b);
+ float tN=max(max(max(mn.x,mn.y),mn.z),0.), tF=min(min(mx.x,mx.y),mx.z);
+ if(tF<=tN) discard;
+ float st=(tF-tN)/float(uSteps);
+ float jit=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))));
+ vec3 acc=vec3(0.); float al=0.;
+ for(int i=0;i<uSteps&&al<.96;i++){
+  vec3 p=ro+rd*(tN+st*(float(i)+jit));
+  float r=rssi(p), sa=0.;
+  float tv=clamp((r+90.)/60.,0.,1.);
+  if(uMode<.5){
+   float d=length(p-uTx), A=pow(10.,(r-uP0)/20.), f=A*cos(uK*d-uW*uTime), E=A;
+   if(uRefl>.5){ for(int j=0;j<6;j++){ float di=length(p-uImg[j]), q=.5*pow(di,-uExp*.5); f+=q*cos(uK*di-uW*uTime); E+=q; }
+     sa=smoothstep(.34,.8,f/E); } else sa=smoothstep(.6,.98,f/E);
+   sa*=(.1+.9*tv*tv)*st*3.2;
+  } else {
+   float s=0.; s+=exp(-pow((r+50.)/.9,2.)); s+=exp(-pow((r+60.)/.9,2.)); s+=exp(-pow((r+67.)/.9,2.)); s+=exp(-pow((r+80.)/.9,2.));
+   sa=(s*1.5+.035)*st*1.8;
+  }
+  sa=clamp(sa,0.,1.);
+  acc+=(1.-al)*cmap(r)*sa; al+=(1.-al)*sa;
+ }
+ o=vec4(acc,al);
+}`;
+const FS_SLICE=COMMON+`
+in vec3 vW; out vec4 o;
+void main(){
+ vec3 p=toRoom(vW); float r=rssi(p), v=r;
+ if(uRefl>.5){
+  float d=length(p-uTx), A=pow(10.,(r-uP0)/20.), re=A*cos(uKreal*d), im=A*sin(uKreal*d);
+  for(int j=0;j<6;j++){ float di=length(p-uImg[j]), q=.5*pow(di,-uExp*.5); re+=q*cos(uKreal*di); im+=q*sin(uKreal*di); }
+  v=uP0+20.*log(max(1e-4,sqrt(re*re+im*im)))/log(10.);
+ }
+ vec3 c=cmap(v);
+ if(uRefl<.5){ float w=fwidth(r); float l=0.;
+  l=max(l,1.-smoothstep(0.,1.4,abs(r+50.)/w)); l=max(l,1.-smoothstep(0.,1.4,abs(r+67.)/w)); l=max(l,1.-smoothstep(0.,1.4,abs(r+80.)/w));
+  c=mix(c,vec3(.04,.07,.09),l*.65); }
+ o=vec4(c*.66,.66);
+}`;
+function initGL(){
+  try{
+    if(!window.THREE) throw new Error('nolib');
+    R=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+    if(!R.capabilities.isWebGL2) throw new Error('nogl2');
+  }catch(e){
+    R=null;const d=document.createElement('div');d.id='nogl';
+    d.textContent=(window.THREE&&THREE.OrbitControls)?'Цей браузер не може показати 3D-сцену: потрібен WebGL 2. Вкладки «Розрахунки» і «Звіт» працюють без нього.':'Не вдалося завантажити 3D-бібліотеку. Перевірте інтернет і оновіть сторінку. Вкладки «Розрахунки» і «Звіт» працюють без неї.';stage.appendChild(d);
+    return false;
+  }
+  R.setClearColor(0x0a1117,1);R.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
+  stage.insertBefore(R.domElement,stage.firstChild);
+  scene=new THREE.Scene();
+  scene.add(new THREE.HemisphereLight(0xcfe3ee,0x1a2530,.9));
+  const dl=new THREE.DirectionalLight(0xffffff,.55);dl.position.set(4,8,3);scene.add(dl);
+  camera=new THREE.PerspectiveCamera(38,1,.1,100);
+  controls=new THREE.OrbitControls(camera,R.domElement);controls.enableDamping=true;controls.dampingFactor=.08;controls.maxPolarAngle=Math.PI*.495;controls.minDistance=2;controls.maxDistance=32;
+  const uni=()=>({uVol:{value:null},uSize:{value:new THREE.Vector3()},uDim:{value:new THREE.Vector3()},uTx:{value:new THREE.Vector3()},uImg:{value:[0,0,0,0,0,0].map(()=>new THREE.Vector3())},uTime:{value:0},uK:{value:1},uW:{value:1},uKreal:{value:1},uRefl:{value:0},uExp:{value:2},uP0:{value:-35}});
+  volMat=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:VS,fragmentShader:FS_VOL,transparent:true,depthTest:false,depthWrite:false,side:THREE.BackSide,premultipliedAlpha:true,
+    uniforms:Object.assign(uni(),{uCam:{value:new THREE.Vector3()},uMode:{value:0},uSteps:{value:72}})});
+  sliceMat=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:VS,fragmentShader:FS_SLICE,transparent:true,side:THREE.DoubleSide,depthWrite:false,premultipliedAlpha:true,uniforms:uni()});
+  sliceMat.extensions={derivatives:true};
+  routerGroup=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.BoxGeometry(.3,.06,.2),new THREE.MeshStandardMaterial({color:0xe6eef2,roughness:.5}));routerGroup.add(body);
+  for(const dx of [-.11,.11]){const an=new THREE.Mesh(new THREE.CylinderGeometry(.008,.012,.2,8),new THREE.MeshStandardMaterial({color:0xe6eef2}));an.position.set(dx,.13,-.08);routerGroup.add(an)}
+  const led=new THREE.Mesh(new THREE.SphereGeometry(.035,12,8),new THREE.MeshBasicMaterial({color:0xfde725}));led.position.set(0,.04,.08);routerGroup.add(led);
+  const handle=new THREE.Mesh(new THREE.SphereGeometry(.32,10,8),new THREE.MeshBasicMaterial({visible:false}));routerGroup.add(handle);routerGroup.userData.handle=handle;
+  routerGroup.traverse(o=>{if(o.isMesh&&o.material.visible!==false){o.material.transparent=true;o.material.depthTest=false}});routerGroup.scale.setScalar(1.5);routerGroup.renderOrder=40;scene.add(routerGroup);
+  probeLine=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.7,depthTest:false}));probeLine.visible=false;probeLine.renderOrder=15;scene.add(probeLine);
+  bindPointer();
+  new ResizeObserver(resize).observe(stage);
+  return true;
+}
+const W2=(x,z,y)=>new THREE.Vector3(x-S.W/2,z,y-S.L/2);
+const MAT_COL={gypsum:0xc9cdc4,brick:0xb5654a,concrete:0x8a9096,wood:0xa47a4f,wardrobe:0x8d6a45,metal:0xa3b6c2,fabric:0x5a6b85,tabletop:0xa47a4f,books:0x9a5f6e,tv:0x6f7f8c,mirror:0xbfe0ee,water:0x3f8fbf,plant:0x4f9a57,body:0xd9a77f};
+function buildRoom(){
+  if(!R)return;
+  if(roomGroup){scene.remove(roomGroup);roomGroup.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}
+  roomGroup=new THREE.Group();scene.add(roomGroup);
+  tags.forEach(t=>t.el.remove());tags=[];
+  const {W,L}=S;
+  floor=new THREE.Mesh(new THREE.PlaneGeometry(W,L),new THREE.MeshStandardMaterial({color:0x1a2630,roughness:1}));floor.rotation.x=-Math.PI/2;roomGroup.add(floor);
+  const pts=[];
+  for(let x=0;x<=W+1e-6;x+=.5){pts.push(W2(x,.004,0),W2(x,.004,L))}
+  for(let y=0;y<=L+1e-6;y+=.5){pts.push(W2(0,.004,y),W2(W,.004,y))}
+  roomGroup.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0x35495a})));
+  const shell=new THREE.BoxGeometry(W,H,L);
+  const sm=new THREE.Mesh(shell,new THREE.MeshBasicMaterial({color:0x88a8bc,transparent:true,opacity:.05,side:THREE.BackSide,depthWrite:false}));sm.position.y=H/2;roomGroup.add(sm);
+  const se=new THREE.LineSegments(new THREE.EdgesGeometry(shell),new THREE.LineBasicMaterial({color:0x7d97a8}));se.position.y=H/2;roomGroup.add(se);
+  for(const b of boxes().filter(x=>x.k!=='item')){
+    const g=new THREE.BoxGeometry(b.x1-b.x0,b.z1-b.z0,b.y1-b.y0);
+    const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:MAT_COL[b.m],transparent:true,opacity:b.k==='wall'?.5:.72,roughness:.8,depthWrite:false}));
+    const c=W2((b.x0+b.x1)/2,(b.z0+b.z1)/2,(b.y0+b.y1)/2);m.position.copy(c);roomGroup.add(m);
+    const e=new THREE.LineSegments(new THREE.EdgesGeometry(g),new THREE.LineBasicMaterial({color:MAT_COL[b.m]}));e.position.copy(c);roomGroup.add(e);
+    if(b.label) addTag(b.label,W2((b.x0+b.x1)/2,b.z1+.12,(b.y0+b.y1)/2));
+  }
+  if(S.on.wall) addTag('перегородка: '+LOSS[S.wallMat].name,W2(.62*W,H+.12,.25*L));
+  addTag(fmt(W,W%1?1:0)+' м',W2(W/2,0,-.3),true);addTag(fmt(L,L%1?1:0)+' м',W2(W+.3,0,L/2),true);
+  addTag('роутер',null,false,true);
+  const nd=gridNodes();
+  if(nodesMesh){scene.remove(nodesMesh);nodesMesh.geometry.dispose();nodesMesh.material.dispose()}
+  nodesMesh=new THREE.InstancedMesh(new THREE.SphereGeometry(.035,8,6),new THREE.MeshBasicMaterial(),nd.length);nodesMesh.renderOrder=10;nodesMesh.userData.nodes=nd;scene.add(nodesMesh);
+  $('nNodes').textContent=nd.length+' шт.';
+  if(volMesh){scene.remove(volMesh);volMesh.geometry.dispose()}
+  volMesh=new THREE.Mesh(new THREE.BoxGeometry(W,H,L),volMat);volMesh.position.y=H/2;volMesh.renderOrder=30;volMesh.frustumCulled=false;scene.add(volMesh);
+  if(sliceMesh){scene.remove(sliceMesh);sliceMesh.geometry.dispose()}
+  sliceMesh=new THREE.Mesh(new THREE.PlaneGeometry(W,L),sliceMat);sliceMesh.rotation.x=-Math.PI/2;sliceMesh.renderOrder=5;scene.add(sliceMesh);
+  buildItems();
+}
+function addTag(text,pos,dim,isRouter){const el=document.createElement('div');el.className='tag'+(dim?' dim':'');el.textContent=text;stage.appendChild(el);const t={el,pos,isRouter};tags.push(t);return t}
+let itemsGroup=null;
+function buildItems(){
+  if(!R)return;
+  if(itemsGroup){scene.remove(itemsGroup);itemsGroup.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}
+  tags=tags.filter(t=>{if(t.forItem){t.el.remove();return false}return true});
+  itemsGroup=new THREE.Group();scene.add(itemsGroup);
+  for(const it of S.items){
+    const b=itemBox(it),g=new THREE.BoxGeometry(b.x1-b.x0,b.z1-b.z0,b.y1-b.y0),sel=it.id===selId;
+    const grp=new THREE.Group();
+    const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:MAT_COL[b.m],transparent:true,opacity:.72,roughness:.8,depthWrite:false}));m.userData.item=it;grp.add(m);
+    grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(g),new THREE.LineBasicMaterial({color:sel?0xffffff:MAT_COL[b.m]})));
+    itemsGroup.add(grp);it._grp=grp;
+    it._tag=addTag(CAT[it.t].name,new THREE.Vector3(),false,false);it._tag.forItem=true;
+    placeItem(it);
+  }
+}
+function placeItem(it){
+  if(!it._grp)return;const b=itemBox(it);
+  it._grp.position.copy(W2(it.x,(b.z0+b.z1)/2,it.y));it._tag.pos.copy(W2(it.x,b.z1+.12,it.y));
+}
+function buildVolume(){
+  if(!R)return;
+  const res=.1,{W,L}=S,nx=Math.round(W/res)+1,ny=Math.round(L/res)+1,nz=Math.round(H/res)+1,bs=boxes().map(b=>b),band=S.band,data=new Uint8Array(nx*ny*nz);
+  const p={x:0,y:0,z:0};let i=0;
+  for(let k=0;k<ny;k++){p.y=k/(ny-1)*L;for(let j=0;j<nz;j++){p.z=j/(nz-1)*H;for(let a=0;a<nx;a++){p.x=a/(nx-1)*W;
+    data[i++]=Math.max(0,Math.min(255,(meanRSSI(p,band,bs)+110)/90*255));}}}
+  if(!tex3D||dim[0]!==nx||dim[1]!==nz||dim[2]!==ny){
+    if(tex3D)tex3D.dispose();
+    tex3D=new THREE.DataTexture3D(data,nx,nz,ny);tex3D.format=THREE.RedFormat;tex3D.type=THREE.UnsignedByteType;tex3D.minFilter=tex3D.magFilter=THREE.LinearFilter;tex3D.wrapS=tex3D.wrapT=tex3D.wrapR=THREE.ClampToEdgeWrapping;tex3D.unpackAlignment=1;dim=[nx,nz,ny];
+  } else tex3D.image.data=data;
+  tex3D.needsUpdate=true;
+  const imgs=images();
+  for(const m of [volMat,sliceMat]){const u=m.uniforms;
+    u.uVol.value=tex3D;u.uSize.value.set(W,H,L);u.uDim.value.set(nx,nz,ny);u.uTx.value.set(S.tx.x,S.tx.z,S.tx.y);
+    imgs.forEach((q,ii)=>u.uImg.value[ii].set(q[0],q[2],q[1]));
+    u.uP0.value=S.P0[band];u.uExp.value=S.n[band];u.uRefl.value=S.refl?1:0;
+    const lv=lambda(band)*S.lam;u.uK.value=2*Math.PI/lv;u.uW.value=2*Math.PI/lv*1.3;u.uKreal.value=2*Math.PI/lambda(band);
+  }
+  volMat.uniforms.uMode.value=S.mode;volMesh.visible=S.mode<2;
+  sliceMesh.visible=S.slice;sliceMesh.position.y=S.h;
+  routerGroup.position.copy(W2(S.tx.x,S.tx.z,S.tx.y));
+  // nodes
+  const key=band===24?'r24':'r5', meas=new Map();
+  for(const r of dataRows) if(r[key]!==null) meas.set(r.x.toFixed(2)+'|'+r.y.toFixed(2),r[key]);
+  const m4=new THREE.Matrix4(),col=new THREE.Color(),nd=nodesMesh.userData.nodes;
+  nd.forEach((n,ii)=>{const pp={x:n.x,y:n.y,z:S.h};const mv=source==='user'?meas.get(n.x.toFixed(2)+'|'+n.y.toFixed(2)):undefined;
+    const v=mv!==undefined?mv:meanRSSI(pp,band,bs);const c=cmap(v);col.setRGB(c[0],c[1],c[2]);nodesMesh.setColorAt(ii,col);
+    m4.makeTranslation(n.x-W/2,S.h+.012,n.y-L/2);nodesMesh.setMatrixAt(ii,m4)});
+  nodesMesh.instanceMatrix.needsUpdate=true;if(nodesMesh.instanceColor)nodesMesh.instanceColor.needsUpdate=true;nodesMesh.visible=S.nodes;
+}
+function setCam(kind){
+  if(!R)return;const m=Math.max(S.W,S.L),t=new THREE.Vector3(0,.9,0);controls.target.copy(t);
+  if(kind===2)camera.position.set(0,m*2.2,.01);
+  else if(kind===3)camera.position.set(0,1.5,m*2.1);
+  else camera.position.set(m*.95,m*1.05,m*1.25);
+  controls.update();
+}
+function resize(){
+  if(!R)return;const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
+  R.setSize(w,h,false);camera.aspect=w/h;camera.fov=w/h<1.2?Math.min(72,38*1.2/(w/h)):38;camera.updateProjectionMatrix();
+}
+/* pointer: drag router, hover probe */
+let ray,ndc,dragPlane,groundPlane,dragging=false,itemDrag=null;
+function setNdc(e){const r=R.domElement.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,camera)}
+function bindPointer(){
+  ray=new THREE.Raycaster();ndc=new THREE.Vector2();dragPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+  stage.addEventListener('pointerdown',e=>{
+    if(e.target!==R.domElement)return;setNdc(e);
+    const h=ray.intersectObject(routerGroup.userData.handle).length>0;
+    controls.enabled=!h;dragging=h;
+    if(h){dragPlane.constant=-S.tx.z;R.domElement.classList.add('drag');R.domElement.setPointerCapture(e.pointerId);e.stopPropagation();return}
+    const ih=itemsGroup?ray.intersectObjects(itemsGroup.children,true).find(x=>x.object.userData.item):null;
+    if(ih){
+      const it=ih.object.userData.item,q=new THREE.Vector3();
+      if(!ray.ray.intersectPlane(groundPlane,q))return;
+      itemDrag={it,ox:it.x-(q.x+S.W/2),oy:it.y-(q.z+S.L/2)};
+      controls.enabled=false;selectItem(it.id);R.domElement.classList.add('drag');R.domElement.setPointerCapture(e.pointerId);e.stopPropagation();
+    }
+  },{capture:true});
+  R.domElement.addEventListener('pointermove',e=>{
+    setNdc(e);
+    if(dragging){const q=new THREE.Vector3();if(ray.ray.intersectPlane(dragPlane,q)){
+      S.tx.x=Math.max(.1,Math.min(S.W-.1,q.x+S.W/2));S.tx.y=Math.max(.1,Math.min(S.L-.1,q.z+S.L/2));syncUI();dirty=true;dataDirty=true}return}
+    if(itemDrag){const q=new THREE.Vector3(),it=itemDrag.it;if(ray.ray.intersectPlane(groundPlane,q)){
+      it.x=Math.round((q.x+S.W/2+itemDrag.ox)*10)/10;it.y=Math.round((q.z+S.L/2+itemDrag.oy)*10)/10;clampItem(it);placeItem(it);syncItemEdit();dirty=true;dataDirty=true}return}
+    if(e.buttons)return;
+    const tg=(S.slice&&sliceMesh)?[sliceMesh,floor]:[floor];const hits=ray.intersectObjects(tg);
+    if(hits.length){const w=hits[0].point;probe({x:w.x+S.W/2,y:w.z+S.L/2,z:Math.max(.02,w.y)},w)}
+  });
+  window.addEventListener('pointerup',()=>{if(itemDrag){itemDrag=null;saveItems()}dragging=false;if(R)R.domElement.classList.remove('drag');if(controls)controls.enabled=true});
+  R.domElement.addEventListener('pointerleave',()=>{if(probeLine)probeLine.visible=false});
+}
+function probe(p,w){
+  const bs=boxes(),v=S.refl?fadedRSSI(p,S.band,bs):meanRSSI(p,S.band,bs),d=Math.hypot(p.x-S.tx.x,p.y-S.tx.y,p.z-S.tx.z);
+  const c=crossed(p,bs).map(b=>LOSS[b.m].name);
+  $('rVal').textContent=fmt(v,0)+' дБм';
+  $('rSub').textContent=fmt(d)+' м · '+quality(v)+' · '+(c.length?'через: '+[...new Set(c)].join(', '):'пряма видимість')+(S.refl?' · з урахуванням завмирань':'');
+  const a=probeLine.geometry.attributes.position;a.setXYZ(0,routerGroup.position.x,routerGroup.position.y,routerGroup.position.z);a.setXYZ(1,w.x,w.y,w.z);a.needsUpdate=true;probeLine.visible=true;
+}
+let covDue=true,covLast=0,dirty=true,dataDirty=true,frames=0,tLast=performance.now(),tAcc=0,clockT=0,pr=Math.min(devicePixelRatio||1,1.5),visible3d=true,lastF=performance.now();
+function loop(now){
+  requestAnimationFrame(loop);
+  if(!R||!visible3d)return;
+  const dt=Math.min(.1,(now-lastF)/1000);lastF=now;
+  if(dirty){dirty=false;buildVolume();covDue=true}
+  if(covDue&&now-covLast>180){covDue=false;covLast=now;renderCoverage()}
+  if(S.playing)clockT+=dt;
+  volMat.uniforms.uTime.value=clockT;volMat.uniforms.uCam.value.copy(camera.position);
+  controls.update();R.render(scene,camera);
+  const w=stage.clientWidth,h=stage.clientHeight,v=new THREE.Vector3();
+  for(const t of tags){
+    if(t.isRouter){v.copy(routerGroup.position);v.y+=.32}else v.copy(t.pos);
+    v.project(camera);
+    t.el.style.left=((v.x+1)/2*w)+'px';t.el.style.top=((1-v.y)/2*h)+'px';
+  }
+  // adaptive quality: lower resolution if the GPU cannot keep up
+  frames++;tAcc+=now-tLast;tLast=now;
+  if(frames>=40){const avg=tAcc/frames;frames=0;tAcc=0;
+    if(avg>38&&pr>.6){pr=Math.max(.6,pr-.25);R.setPixelRatio(pr);resize();if(pr<.9)volMat.uniforms.uSteps.value=48}
+  }
+}
+
+/* ---------- UI: 3D rack ---------- */
+function honestText(){
+  const b=S.band,l=lambda(b)*100;
+  let t='Розрахункова модель, не вимірювання. ';
+  if(S.mode===0) t+='Довжину хвилі в об\'ємі збільшено ×'+S.lam+' (реальна '+fmt(l)+' см), рух сповільнено приблизно в мільярд разів. ';
+  if(S.refl) t+='На зрізі показано завмирання з реальною довжиною хвилі: враховано пряму хвилю і шість перших відбиттів.';
+  return t;
+}
+function syncUI(){
+  const {W,L,tx,band}=S;
+  $('hArea').textContent=fmt(W*L,0)+' м²';
+  $('rX').max=W-.1;$('rY').max=L-.1;$('rX').value=tx.x;$('rY').value=tx.y;$('rZ').value=tx.z;
+  $('oX').textContent=fmt(tx.x,2)+' м';$('oY').textContent=fmt(tx.y,2)+' м';$('oZ').textContent=fmt(tx.z,2)+' м';
+  $('rP0').value=S.P0[band];$('oP0').textContent=fmt(S.P0[band],0)+' дБм';
+  $('rN').value=S.n[band];$('oN').textContent=fmt(S.n[band],2);
+  $('rLam').value=S.lam;$('oLam').textContent='×'+S.lam+' → '+fmt(lambda(band)*S.lam*100,0)+' см';
+  $('rH').value=S.h;$('oH').textContent=fmt(S.h,2)+' м';
+  document.querySelectorAll('#segBand button').forEach(x=>x.setAttribute('aria-pressed',String(+x.dataset.b===band)));
+  document.querySelectorAll('#segMode button').forEach(x=>x.setAttribute('aria-pressed',String(+x.dataset.m===S.mode)));
+  document.querySelectorAll('[data-l]').forEach(x=>{x.textContent='−'+fmt(LOSS[x.dataset.l][band])+' дБ'});
+  document.querySelectorAll('#itemList button').forEach(x=>{const it=S.items.find(i=>i.id===+x.dataset.id);if(it)x.children[1].textContent='−'+fmt(LOSS[CAT[it.t].m][band])+' дБ'});
+  $('play').textContent=S.playing?'Пауза':'Пуск';
+  $('honest').textContent=honestText();
+}
+function onInput(id,fn){$(id).addEventListener('input',e=>{fn(e.target);syncUI();dirty=true})}
+function bindRack(){
+  onInput('rX',t=>{S.tx.x=+t.value;dataDirty=true});onInput('rY',t=>{S.tx.y=+t.value;dataDirty=true});onInput('rZ',t=>{S.tx.z=+t.value;dataDirty=true});
+  onInput('rP0',t=>{S.P0[S.band]=+t.value;dataDirty=true});onInput('rN',t=>{S.n[S.band]=+t.value;dataDirty=true});
+  onInput('rLam',t=>{S.lam=+t.value});onInput('rH',t=>{S.h=+t.value;dataDirty=true});
+  onInput('cRefl',t=>{S.refl=t.checked});onInput('cSlice',t=>{S.slice=t.checked});onInput('cNodes',t=>{S.nodes=t.checked});
+  $('segBand').addEventListener('click',e=>{const b=e.target.dataset.b;if(b){S.band=+b;syncUI();dirty=true;renderCoverage()}});
+  $('segMode').addEventListener('click',e=>{const m=e.target.dataset.m;if(m!==undefined){S.mode=+m;syncUI();dirty=true}});
+  const rebuild=()=>{buildRoom();syncUI();dirty=true;dataDirty=true};
+  [['oWall','wall'],['oDoor','door']].forEach(([id,k])=>$(id).addEventListener('change',e=>{S.on[k]=e.target.checked;rebuild()}));
+  $('sWall').addEventListener('change',e=>{S.wallMat=e.target.value;rebuild()});
+  $('sRoom').addEventListener('change',e=>{const[a,b]=e.target.value.split(',').map(Number);S.W=a;S.L=b;S.tx.x=Math.min(S.tx.x,a-.1);S.tx.y=Math.min(S.tx.y,b-.1);S.tx.y=Math.min(S.tx.y,b/2);S.items.forEach(clampItem);rebuild();renderItems();setCam(1)});
+  $('cam1').onclick=()=>setCam(1);$('cam2').onclick=()=>setCam(2);$('cam3').onclick=()=>setCam(3);
+  $('play').onclick=()=>{S.playing=!S.playing;syncUI()};
+  $('sAdd').innerHTML=Object.keys(CAT).map(k=>'<option value="'+k+'">'+CAT[k].name+' (−'+fmt(LOSS[CAT[k].m][24])+' дБ)</option>').join('');
+  $('sAdd').value='bookcase';
+  const changed=()=>{saveItems();buildItems();renderItems();dirty=true;dataDirty=true;renderCoverage()};
+  $('bAdd').onclick=()=>{
+    const n=S.items.length,it={t:$('sAdd').value,x:S.W*.45+((n*.7)%2.1)-1,y:S.L*.5+((n*.45)%1.4)-.7,rot:0,id:itemSeq++};clampItem(it);S.items.push(it);selId=it.id;changed()};
+  $('bRot').onclick=()=>{const it=selected();if(it){it.rot=it.rot?0:1;clampItem(it);changed()}};
+  $('bDel').onclick=()=>{S.items=S.items.filter(i=>i.id!==selId);selId=null;changed()};
+  $('bClear').onclick=()=>{S.items=[];selId=null;changed()};
+  $('bReset').onclick=()=>{S.items=defaultItems();selId=null;changed()};
+  $('itemList').addEventListener('click',e=>{const b=e.target.closest('button');if(b)selectItem(+b.dataset.id===selId?null:+b.dataset.id)});
+  const mv=(k,el)=>$(el).addEventListener('input',e=>{const it=selected();if(!it)return;it[k]=+e.target.value;clampItem(it);placeItem(it);syncItemEdit();saveItems();dirty=true;dataDirty=true;covDue=true;if(!R)renderCoverage()});
+  mv('x','rIX');mv('y','rIY');
+  renderItems();
+}
+
+/* ---------- Items list & coverage ---------- */
+const selected=()=>S.items.find(i=>i.id===selId)||null;
+function selectItem(id){selId=id;buildItems();renderItems()}
+function renderItems(){
+  $('itemList').innerHTML=S.items.map(it=>'<button type="button" data-id="'+it.id+'" aria-pressed="'+(it.id===selId)+'"><span>'+CAT[it.t].name+'</span><span class="num">−'+fmt(LOSS[CAT[it.t].m][S.band])+' дБ</span><small id="sh'+it.id+'"></small></button>').join('');
+  syncItemEdit();covDue=true;if(!R||!visible3d)renderCoverage();
+}
+function syncItemEdit(){
+  const it=selected();$('itemEdit').hidden=!it;if(!it)return;
+  const {w,d}=itemDims(it);$('rIX').min=w/2;$('rIX').max=S.W-w/2;$('rIY').min=d/2;$('rIY').max=S.L-d/2;
+  $('rIX').value=it.x;$('rIY').value=it.y;$('oIX').textContent=fmt(it.x,1)+' м';$('oIY').textContent=fmt(it.y,1)+' м';
+}
+function covStats(bs){
+  let sum=0,ok=0,weak=0,c=0;const nd=gridNodes(),p={x:0,y:0,z:S.h};
+  for(const n of nd){p.x=n.x;p.y=n.y;const v=meanRSSI(p,S.band,bs);sum+=v;if(v>=-67)ok++;if(v<-80)weak++;c++}
+  return {avg:sum/c,ok:ok/c*100,weak,total:c};
+}
+function renderCoverage(){
+  const all=boxes(),base=all.filter(b=>b.k!=='item'),a=covStats(all),z=covStats(base),sg=(v,d)=>(v>0?'+':'')+fmt(v,d);
+  $('cAvg').textContent=fmt(a.avg,1)+' дБм';$('cOk').textContent=fmt(a.ok,0)+' %';$('cWeak').textContent=a.weak+' з '+a.total;
+  const pre=S.items.length?'Через предмети: ':'Предметів у кімнаті немає';
+  $('cAvgD').textContent=S.items.length?pre+sg(a.avg-z.avg,1)+' дБ':pre;
+  $('cOkD').textContent=S.items.length?pre+sg(a.ok-z.ok,0)+' в. п.':'';
+  $('cWeakD').textContent=S.items.length?pre+sg(a.weak-z.weak,0)+' точок':'';
+  const nd=gridNodes(),p={x:0,y:0,z:S.h};
+  for(const b of all){if(b.k!=='item')continue;let n=0;for(const q of nd){p.x=q.x;p.y=q.y;if(hit(b,S.tx,p))n++}
+    const el=$('sh'+b.item.id);if(el)el.textContent='затіняє '+fmt(n/nd.length*100,0)+' % кімнати'}
+}
+
+/* ---------- Tabs ---------- */
+function show(v){
+  ['v3d','vcalc','vdoc'].forEach(n=>{$(n).hidden=n!==v;$('t-'+n).setAttribute('aria-selected',String(n===v))});
+  visible3d=v==='v3d';
+  if(visible3d){lastF=tLast=performance.now();resize();dirty=true}else refreshData();
+}
+document.querySelector('.tabs').addEventListener('click',e=>{if(e.target.dataset.v)show(e.target.dataset.v)});
+
+/* ---------- Calculations ---------- */
+function refreshData(){
+  if(source==='model'&&dataDirty) $('csv').value=demoCSV();
+  dataDirty=false;
+  const {rows,bad}=parseCSV($('csv').value);dataRows=rows;
+  $('parseMsg').textContent=rows.length?('Прочитано точок: '+rows.length+(bad?'. Не вдалося прочитати рядків: '+bad+'. Перевірте x і y в них.':'.')):'Поки немає жодного значення RSSI. Заповніть стовпці rssi24 або rssi5.';
+  $('srcNote').textContent=source==='model'
+    ?'Зараз у таблиці приклад, згенерований моделлю з випадковим розкидом. Це не ваші вимірювання. Вставте свої заміри в таблицю, і всі розрахунки та звіт перерахуються.'
+    :'Показано дані з вашої таблиці. Перевірте, що положення роутера на вкладці «3D-простір» збігається з реальним під час замірів.';
+  $('docNote').textContent=source==='model'
+    ?'Числа в розділах «Результати» і «Висновки» поки модельні. Вони оновляться, щойно ви вставите свої заміри у вкладці «Розрахунки».'
+    :'Числа в звіті взято з вашої таблиці вимірювань.';
+  const A=analysis();renderStats(A);renderOut(A);renderSteps(A);renderObst();renderChart('ch24',24,A[24]);renderChart('ch5',5,A[5]);renderDoc(A);
+  dirty=true;
+}
+const fv=(v,d)=>isFinite(v)?fmt(v,d):'—';
+function renderStats(A){
+  const name={24:'2,4 ГГц',5:'5 ГГц'},scope=[['all','усі точки'],['los','пряма видимість'],['nlos','за перешкодою']];
+  let h='<thead><tr><th>Вибірка</th><th>k</th><th>n</th><th>σ², дБ²</th><th>σ, дБ</th></tr></thead><tbody>';
+  for(const b of [24,5]) for(const [k,lab] of scope){const f=A[b][k];
+    h+=`<tr><td>${name[b]}, ${lab}</td><td>${f.k}</td><td>${fv(f.n,2)}</td><td>${fv(f.s2,1)}</td><td>${fv(f.s,1)}</td></tr>`}
+  $('tStats').innerHTML=h+'</tbody>';
+}
+function renderOut(A){
+  const thr=+$('iThr').value||-80,ds=[2,5,8,10].filter(d=>d<=Math.hypot(S.W,S.L));
+  let h='<thead><tr><th>Відстань</th><th>P̄ 2,4 ГГц</th><th>P<sub>out</sub> 2,4</th><th>P̄ 5 ГГц</th><th>P<sub>out</sub> 5</th></tr></thead><tbody>';
+  for(const d of ds){const c=b=>{const f=A[b].all,m=S.P0[b]-f.n*10*Math.log10(d);return [m,Q((m-thr)/f.s)]},a=c(24),e=c(5);
+    h+=`<tr><td>${d} м</td><td>${fv(a[0],1)} дБм</td><td>${isFinite(a[1])?fmt(a[1]*100,1)+' %':'—'}</td><td>${fv(e[0],1)} дБм</td><td>${isFinite(e[1])?fmt(e[1]*100,1)+' %':'—'}</td></tr>`}
+  const share=b=>{const p=A[b].pts;return p.length?p.filter(x=>x.v<thr).length/p.length:NaN},s24=share(24),s5=share(5);
+  h+=`<tr><td>Точок нижче порога</td><td></td><td>${isFinite(s24)?fmt(s24*100,1)+' %':'—'}</td><td></td><td>${isFinite(s5)?fmt(s5*100,1)+' %':'—'}</td></tr>`;
+  $('tOut').innerHTML=h+'</tbody>';
+}
+function renderSteps(A){
+  const L=[];
+  for(const b of [24,5]){const f=A[b].all,P0=S.P0[b],t=b===24?'2,4 ГГц':'5 ГГц';
+    if(!f.k){L.push(t+': немає даних');L.push('');continue}
+    L.push(t+', k = '+f.k+', Pr(d0) = '+fmt(P0,0)+' дБм');
+    L.push('  yᵢ = Pr(d0) − Pr(dᵢ),  xᵢ = 10·log10(dᵢ)');
+    L.push('  n  = Σ(xᵢ·yᵢ) / Σxᵢ² = '+fmt(f.sxy,1)+' / '+fmt(f.sx2,1)+' = '+fv(f.n,3));
+    L.push('  eᵢ = Pm(dᵢ) − [Pr(d0) − 10·n·log10(dᵢ)]');
+    L.push('  σ² = Σeᵢ² / (k − 1) = '+fmt(f.se,1)+' / '+(f.k-1)+' = '+fv(f.s2,2)+' дБ²');
+    L.push('  σ  = √σ² = '+fv(f.s,2)+' дБ');L.push('');
+  }
+  $('steps').textContent=L.join('\n').trim();
+}
+function renderObst(){
+  const A=analysis(),groups={};
+  for(const b of [24,5]){const nl=A[b].los.n,P0=S.P0[b];
+    for(const p of A[b].pts){if(!p.obst)continue;const g=groups[p.obst]=groups[p.obst]||{24:[],5:[]};g[b].push((P0-10*(isFinite(nl)?nl:2)*Math.log10(p.d))-p.v)}}
+  const mean=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:NaN;
+  const ks=Object.keys(groups).sort((a,b)=>mean(groups[b][24])-mean(groups[a][24]));
+  let h='<thead><tr><th>Перешкода на шляху</th><th>Точок</th><th>Згасання 2,4 ГГц, дБ</th><th>Згасання 5 ГГц, дБ</th></tr></thead><tbody>';
+  if(!ks.length)h+='<tr><td colspan="4">У таблиці немає точок із зазначеною перешкодою.</td></tr>';
+  ks.forEach(k=>{const g=groups[k];h+=`<tr><td>${k.replace(/[<>&]/g,'')}</td><td>${g[24].length||g[5].length}</td><td>${fv(mean(g[24]),1)}</td><td>${fv(mean(g[5]),1)}</td></tr>`});
+  $('tObst').innerHTML=h+'</tbody>';
+}
+function renderChart(id,b,a){
+  const el=$(id),wd=520,ht=300,m={l:46,r:14,t:10,b:34},col=b===24?'var(--s24)':'var(--s5)';
+  const dmin=.25,dmax=Math.max(10,...a.pts.map(p=>p.d),1)+.01,X=d=>m.l+(Math.log10(d)-Math.log10(dmin))/(Math.log10(dmax)-Math.log10(dmin))*(wd-m.l-m.r),
+    ymin=-100,ymax=-20,Y=v=>m.t+(ymax-v)/(ymax-ymin)*(ht-m.t-m.b);
+  let s=`<svg viewBox="0 0 ${wd} ${ht}" role="img" aria-label="Рівень сигналу від відстані, ${b===24?'2,4':'5'} ГГц">`;
+  for(let v=-100;v<=-20;v+=20){s+=`<line x1="${m.l}" x2="${wd-m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${m.l-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${fmt(v,0)}</text>`}
+  [.5,1,2,3,5,10].forEach(d=>{s+=`<text x="${X(d)}" y="${ht-m.b+16}" text-anchor="middle" font-size="11" fill="var(--muted)">${fmt(d,d%1?1:0)}</text>`});
+  s+=`<text x="${(wd+m.l)/2}" y="${ht-3}" text-anchor="middle" font-size="11" fill="var(--muted)">Відстань, м</text><text x="12" y="${ht/2-14}" transform="rotate(-90 12 ${ht/2-14})" text-anchor="middle" font-size="11" fill="var(--muted)">RSSI, дБм</text>`;
+  a.pts.forEach(p=>{s+=p.obst?`<circle cx="${X(p.d)}" cy="${Y(p.v)}" r="3" fill="none" stroke="${col}" stroke-opacity=".75" stroke-width="1.2"/>`:`<circle cx="${X(p.d)}" cy="${Y(p.v)}" r="3" fill="${col}" fill-opacity=".85"/>`});
+  const f=a.all;
+  if(isFinite(f.n)){let d='';for(let i=0;i<=20;i++){const dd=dmin*Math.pow(dmax/dmin,i/20),v=S.P0[b]-f.n*10*Math.log10(dd);if(v>ymax||v<ymin)continue;d+=(d?'L':'M')+X(dd).toFixed(1)+' '+Y(v).toFixed(1)}
+    s+=`<path d="${d}" fill="none" stroke="var(--fg)" stroke-width="2"/>`}
+  s+='</svg>';
+  el.innerHTML=`<h3>${b===24?'2,4':'5'} ГГц: n = ${fv(f.n,2)}, σ = ${fv(f.s,1)} дБ</h3>`+s+'<div class="tip" hidden></div>';
+  const svg=el.querySelector('svg'),tip=el.querySelector('.tip');
+  svg.onpointermove=e=>{
+    const r=svg.getBoundingClientRect(),k=wd/r.width,mx=(e.clientX-r.left)*k,my=(e.clientY-r.top)*k;let best=null,bd=18*18;
+    a.pts.forEach(p=>{const dd=(X(p.d)-mx)**2+(Y(p.v)-my)**2;if(dd<bd){bd=dd;best=p}});
+    if(!best){tip.hidden=true;return}
+    tip.hidden=false;tip.textContent=`${fmt(best.d,2)} м · ${fmt(best.v,0)} дБм · ${best.obst||'пряма видимість'}`;
+    tip.style.left=Math.min(r.width-200,Math.max(0,X(best.d)/k+6))+'px';tip.style.top=(Y(best.v)/k+6+el.querySelector('h3').offsetHeight)+'px';
+  };
+  svg.onpointerleave=()=>{tip.hidden=true};
+}
+
+/* ---------- Report ---------- */
+const METHOD=[
+ a=>`Для проведення аналізу покриття мережі Wi-Fi у приміщенні використовується спеціалізований мобільний додаток ${a}. Вимірювання параметрів сигналу здійснюється шляхом розбиття площі досліджуваного об'єкта на контрольну сітку з просторовим кроком 0,5 метра.`,
+ a=>`З метою детального моніторингу та аналізу якості Wi-Fi мережі застосовується програмне забезпечення ${a} на базі смартфона. Сканування радіоефіру приміщення проводиться покроково з інтервалом 0,5 м, що дозволяє побудувати точну карту розподілу радіосигналу.`,
+ a=>`Аналіз Wi-Fi мережі всередині приміщення виконується за допомогою мобільного застосунку ${a}. Для забезпечення високої точності результатів виміри проводяться з кроком 0,5 метра.`];
+function renderDoc(A){
+  const raw=$('iApp').value.trim().replace(/[<>&]/g,''),app=raw?raw:'<mark>[назва програми]</mark>',v=+$('sVar').value,nn=gridNodes().length,a=A[24],e=A[5],src=source==='model';
+  const dB=(f,d=2)=>fv(f,d);
+  const gap=()=>{const c=[];for(const k of ['all','los','nlos'])c.push(e[k].n-a[k].n);return c};
+  const g=gap();
+  const faster=isFinite(g[0])?(g[0]>0?'5 ГГц':'2,4 ГГц'):null;
+  $('doc').innerHTML=`
+  <h2>Мета роботи</h2>
+  <p>Дослідити поширення радіосигналу Wi-Fi у приміщенні площею ${fmt(S.W*S.L,0)} м² (${fmt(S.W,S.W%1?1:0)} × ${fmt(S.L,S.L%1?1:0)} м), визначити коефіцієнт згасання n і дисперсію затінення σ², оцінити вплив відстані, перешкод і частотного діапазону на рівень сигналу.</p>
+  <h2>Обладнання та програмне забезпечення</h2>
+  <ul><li>Передавач: дводіапазонний Wi-Fi роутер (2,4 ГГц та 5 ГГц).</li><li>Приймач: смартфон.</li><li>Програма для моніторингу мережі: ${app}.</li></ul>
+  <h2>Приміщення</h2>
+  <p>${S.on.wall?'Приміщення розділене перегородкою ('+LOSS[S.wallMat].name+')'+(S.on.door?' із зачиненими дверима':' з відчиненим дверним прорізом')+'. ':''}${S.items.length?'Предмети інтер\'єру: '+Object.entries(S.items.reduce((m,i)=>{const n=CAT[i.t].name.toLowerCase();m[n]=(m[n]||0)+1;return m},{})).map(([n,c])=>c>1?n+' ('+c+' шт.)':n).join(', ')+'.':'Предметів інтер\'єру немає.'} Роутер розміщено на висоті ${fmt(S.tx.z,1)} м.</p>
+  <h2>Теоретичні відомості</h2>
+  <p>Втрати сигналу в приміщенні описує модель ITU для внутрішнього поширення:</p>
+  <div class="formula">PL(d) = 20·log₁₀(f) + N·log₁₀(d) + P_f(n) − 28</div>
+  <p>Тут f — частота в МГц, d — відстань у метрах, N — коефіцієнт втрат на відстані, P_f(n) — втрати на проходження перешкод. Для обробки вимірювань використано логарифмічну модель:</p>
+  <div class="formula">P_r(d) = P_r(d₀) − 10·n·log₁₀(d / d₀),   d₀ = 1 м</div>
+  <p>Коефіцієнт n визначено методом найменших квадратів, де yᵢ = P_r(d₀) − P_r(dᵢ), а xᵢ = 10·log₁₀(dᵢ):</p>
+  <div class="formula">n = Σ(xᵢ·yᵢ) / Σxᵢ²</div>
+  <p>Розкид відносно моделі характеризує дисперсія затінення, де eᵢ — відхилення виміряного значення від прогнозованого:</p>
+  <div class="formula">σ² = Σeᵢ² / (k − 1),   σ = √σ²</div>
+  <h2>Методика вимірювань</h2>
+  <p>${METHOD[v](app)}</p>
+  <ol>
+    <li>Накреслити план приміщення, позначити роутер і нанести сітку з кроком 0,5 м; кількість вузлів для цієї кімнати: ${nn}.</li>
+    <li>Виміряти еталонний рівень P_r(d₀) на відстані 1 м від роутера в прямій видимості.</li>
+    <li>У кожному вузлі сітки тримати смартфон на постійній висоті ${fmt(S.h,1)} м, чекати 10–15 секунд для стабілізації показників і записати середнє значення RSSI.</li>
+    <li>Для вузлів без прямої видимості записати матеріал перешкоди: дерев'яні двері, цегляна стіна, меблі.</li>
+    <li>Перемкнути роутер на 5 ГГц і повторити вимірювання в тих самих вузлах.</li>
+  </ol>
+  <h2>Результати${src?' (модельні дані)':''}</h2>
+  <p>Опрацьовано ${a.all.k} точок для 2,4 ГГц і ${e.all.k} точок для 5 ГГц. Для 2,4 ГГц отримано n = ${dB(a.all.n)}, σ = ${dB(a.all.s,1)} дБ. Для 5 ГГц отримано n = ${dB(e.all.n)}, σ = ${dB(e.all.s,1)} дБ. У прямій видимості коефіцієнт дорівнює ${dB(a.los.n)} для 2,4 ГГц та ${dB(e.los.n)} для 5 ГГц, за перешкодами ${dB(a.nlos.n)} та ${dB(e.nlos.n)} відповідно.</p>
+  <h2>Висновки${src?' (приклад для модельних даних, уточніть після замірів)':''}</h2>
+  <p>${faster?`Швидше згасає сигнал у діапазоні ${faster}: різниця коефіцієнтів n між діапазонами становить ${fmt(Math.abs(g[0]),2)}.`:'Для висновку про діапазони потрібні дані обох частот.'} ${isFinite(a.los.n)&&isFinite(a.nlos.n)?`Наявність перешкод підвищує n у діапазоні 2,4 ГГц із ${dB(a.los.n)} до ${dB(a.nlos.n)}, що підтверджує вплив стін і меблів на покриття.`:''} ${isFinite(a.all.s)?`Значення σ = ${dB(a.all.s,1)} дБ показує ${a.all.s<3?'порівняно однорідне середовище':a.all.s<6?'помірний розкид рівня сигналу в приміщенні':'значний розкид, типовий для приміщень зі стінами та меблями'}. Знаючи n і σ, можна оцінити ймовірність розриву зв'язку в будь-якій точці кімнати.`:''}</p>`;
+}
+const copyFrom=(btn,text,sel)=>{const ok=()=>{const o=btn.textContent;btn.textContent='Скопійовано';setTimeout(()=>btn.textContent=o,1500)};
+  const fall=()=>{if(sel&&sel.select)sel.select();else if(sel){const r=document.createRange();r.selectNodeContents(sel);const s=getSelection();s.removeAllRanges();s.addRange(r)}btn.textContent='Виділено: натисніть Ctrl+C'};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(ok,fall);else fall()};
+function bindCalc(){
+  $('csv').addEventListener('input',()=>{source='user';store.set('wifi48.csv',$('csv').value);refreshData()});
+  $('bTpl').onclick=()=>{source='user';$('csv').value=templateCSV();store.set('wifi48.csv',$('csv').value);refreshData()};
+  $('bDemo').onclick=()=>{source='model';dataDirty=true;store.set('wifi48.csv','');refreshData()};
+  $('bCopy').onclick=e=>copyFrom(e.target,$('csv').value,$('csv'));
+  $('iThr').addEventListener('input',refreshData);
+  $('bApply').onclick=e=>{const A=analysis();let changed=false;
+    for(const b of [24,5]){const n=A[b].los.n;const v=isFinite(n)?n:A[b].all.n;if(isFinite(v)){S.n[b]=Math.max(1.6,Math.min(4.5,+v.toFixed(2)));changed=true}}
+    if(changed){syncUI();dirty=true;dataDirty=source==='model';e.target.textContent='Застосовано';setTimeout(()=>e.target.textContent='Застосувати n до 3D-моделі',1500);refreshData()}};
+  const app=store.get('wifi48.app');if(app)$('iApp').value=app;
+  $('iApp').addEventListener('input',()=>{store.set('wifi48.app',$('iApp').value);renderDoc(analysis())});
+  $('sVar').addEventListener('change',()=>renderDoc(analysis()));
+  $('bDocCopy').onclick=e=>copyFrom(e.target,$('doc').innerText,$('doc'));
+  const saved=store.get('wifi48.csv');if(saved){source='user';$('csv').value=saved}
+}
+
+/* ---------- Boot ---------- */
+bindCalc();bindRack();
+const ok=initGL();
+if(ok){buildRoom();setCam(1);resize();routerGroup.position.copy(W2(S.tx.x,S.tx.z,S.tx.y));const pc={x:S.W*.85,y:S.L*.3,z:S.h};probe(pc,W2(pc.x,pc.z,pc.y));probeLine.visible=false}
+refreshData();syncUI();
+requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>
